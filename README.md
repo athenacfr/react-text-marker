@@ -17,8 +17,10 @@ Inspired by mark.js, this is a similar implementation using React API.
 - [ ] Filter marks
 - [ ] Exclude elements
 - [ ] Mark across elements
+- [ ] Case sensitivity
+- [ ] Punctuation
+- [ ] Diacritics
 - [ ] Documented API
-- [ ] More options (Ex: Case sensitivity, punctuation, diacritics, etc)
 
 ## 🤔 Getting started
 
