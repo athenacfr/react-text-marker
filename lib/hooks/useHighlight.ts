@@ -23,14 +23,14 @@ export type HighlightOptions = {
   element: ReactNode
   query: string | string[]
   renderMark?: (text: string) => ReactNode
-  searchNestedElements?: boolean
+  nestedElements?: boolean
 }
 
 function highlight({
   element,
   query,
   renderMark = (text) => createElement('mark', undefined, text),
-  searchNestedElements = false,
+  nestedElements = false,
 }: HighlightOptions): ReactNode {
   const queries = Array.isArray(query) ? query : [query]
   const regex = buildRegex(queries)
@@ -50,7 +50,7 @@ function highlight({
     }
 
     if (
-      searchNestedElements &&
+      nestedElements &&
       typeof child === 'object' &&
       'props' in child &&
       child.props.children
@@ -64,7 +64,7 @@ function highlight({
           element: children,
           query,
           renderMark,
-          searchNestedElements,
+          nestedElements,
         })
       )
     }
@@ -79,10 +79,10 @@ export function useHighlight({
   element,
   query,
   renderMark,
-  searchNestedElements,
+  nestedElements,
 }: HighlightOptions) {
   return useMemo(
-    () => highlight({ element, query, renderMark, searchNestedElements }),
-    [element, query, renderMark, searchNestedElements]
+    () => highlight({ element, query, renderMark, nestedElements }),
+    [element, query, renderMark, nestedElements]
   )
 }
