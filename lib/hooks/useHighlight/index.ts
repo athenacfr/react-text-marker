@@ -5,26 +5,10 @@ import {
   ReactNode,
   useMemo,
 } from 'react'
-
-const escapeRegexp = (term: string): string =>
-  term.replace(/[|\\{}()[\]^$+*?.-]/g, (char: string) => `\\${char}`)
-
-function createRegex(queries: string[], flags?: string) {
-  const formattedQueries = queries
-    .map((query) => escapeRegexp(query.trim()))
-    .filter((regex) => regex.length !== 0)
-
-  if (formattedQueries.length === 0) return null
-
-  const pattern = `(${formattedQueries.join('|')})`
-
-  return new RegExp(pattern, flags)
-}
+import { QueryRegExp } from './QueryRegExp'
 
 export type HighlightFilterData = {
   text: string
-  index: number
-  texts: string[]
   fullText: string
   regex: RegExp
   occurrence: number
@@ -46,31 +30,25 @@ function highlight({
   nestedElements = false,
 }: HighlightOptions): ReactNode {
   const queries = Array.isArray(query) ? query : [query]
-  const regex = createRegex(queries, 'ig')
+  const queryRegex = new QueryRegExp(queries, 'ig')
 
-  if (!regex) return element
+  if (!queryRegex.isValid) return element
 
   const children = Children.map(element, (child) => {
     if (!child) return null
 
     if (typeof child === 'string') {
-      const texts = child
-        .split(regex)
-        .map((text, index, texts) => {
-          const matches = index % 2 === 1
-
+      const texts = queryRegex
+        .split(child)
+        .map(({ text, matches, occurrence }) => {
           if (matches) {
-            const occurrence = (index - 1) / 2
-
             return {
               text,
               mark: filter({
                 fullText: child,
                 occurrence,
                 text,
-                index,
-                texts,
-                regex,
+                regex: queryRegex,
               }),
             }
           }
