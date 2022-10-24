@@ -24,12 +24,22 @@ export const NestedElements: ComponentStoryObj<typeof Highlight> = {
   },
 }
 
-export const CustomRender: ComponentStoryObj<typeof Highlight> = {
+export const CustomMarkRender: ComponentStoryObj<typeof Highlight> = {
   args: {
     children: 'Hello World!',
     query: 'world',
     renderMark: (text) => (
       <span style={{ backgroundColor: 'red' }}>{text}</span>
     ),
+  },
+}
+
+export const CustomFilter: ComponentStoryObj<typeof Highlight> = {
+  args: {
+    children: Array(10).fill('Hello World!').join(' '),
+    query: ['hello', 'world'],
+    filter: ({ occurrence }) => {
+      return [6, 4, 2, 7].includes(occurrence)
+    },
   },
 }
