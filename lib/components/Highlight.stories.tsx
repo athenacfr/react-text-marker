@@ -1,4 +1,5 @@
 import { ComponentMeta, ComponentStoryObj } from '@storybook/react'
+import { isValidElement } from 'react'
 import { Highlight } from './Highlight'
 
 export default {
@@ -40,6 +41,31 @@ export const CustomFilter: ComponentStoryObj<typeof Highlight> = {
     query: ['hello', 'world'],
     filter: ({ occurrence }) => {
       return [6, 4, 2, 7].includes(occurrence)
+    },
+  },
+}
+
+export const CustomExclude: ComponentStoryObj<typeof Highlight> = {
+  args: {
+    children: (
+      <>
+        <span>
+          Hello <b>World</b>!
+        </span>
+        <br />
+        <span>
+          Hello <b data-highlight-ignore>World</b>!
+        </span>
+        <br />
+        <span data-highlight-ignore>
+          Hello <b>World</b>!
+        </span>
+      </>
+    ),
+    query: 'world',
+    nestedElements: true,
+    exclude: ({ element }) => {
+      return isValidElement(element) && 'data-highlight-ignore' in element.props
     },
   },
 }

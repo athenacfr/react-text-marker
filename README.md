@@ -15,7 +15,7 @@ Inspired by mark.js, this is a similar implementation using React API.
 - [x] Mark plain text
 - [x] Mark nested elements
 - [x] Filter marks
-- [ ] Exclude elements
+- [x] Exclude elements
 - [ ] Mark across elements
 - [ ] Case sensitivity
 - [ ] Punctuation

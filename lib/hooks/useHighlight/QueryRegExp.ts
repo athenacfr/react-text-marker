@@ -1,17 +1,45 @@
-export class QueryRegExp extends RegExp {
-  constructor(public queries: string[], flags?: string) {
-    const formattedQueries = queries
-      .map((query) => this.escapeQuery(query.trim()))
+interface RegExpOptions {
+  hasIndices?: boolean
+  global?: boolean
+  ignoreCase?: boolean
+  multiline?: boolean
+  dotAll?: boolean
+  unicode?: boolean
+  sticky?: boolean
+}
+
+function createFlagsFromOptions(options: RegExpOptions) {
+  let flags = ''
+  if (options.hasIndices) flags += 'd'
+  if (options.global) flags += 'g'
+  if (options.ignoreCase) flags += 'i'
+  if (options.multiline) flags += 'm'
+  if (options.dotAll) flags += 's'
+  if (options.unicode) flags += 'u'
+  if (options.sticky) flags += 'y'
+  return flags
+}
+
+export class QueryRegExp {
+  public readonly regex: RegExp
+  public readonly queries: string[]
+  public readonly isValid: boolean
+
+  constructor(query: string | string[], options: RegExpOptions = {}) {
+    const queries = Array.isArray(query) ? query : [query]
+    const queryPatterns = queries
+      .map(this.formatQueryAsPattern)
       .filter((regex) => regex.length !== 0)
+    const isValid = queryPatterns.length !== 0
+    const pattern = isValid ? `(${queryPatterns.join('|')})` : ''
 
-    const pattern =
-      formattedQueries.length === 0 ? `(${formattedQueries.join('|')})` : ''
-
-    super(pattern, flags)
+    this.queries = queries
+    this.isValid = isValid
+    this.regex = new RegExp(pattern, createFlagsFromOptions(options))
   }
 
   public split(str: string, limit?: number) {
-    const result = str.split(this, limit)
+    const result = str.split(this.regex, limit)
 
     return result.map((text, index) => {
       const matches = index % 2 === 1
@@ -26,11 +54,7 @@ export class QueryRegExp extends RegExp {
     })
   }
 
-  public get isValid() {
-    return this.source !== '?:'
-  }
-
-  private escapeQuery(query: string) {
-    return query.replace(/[|\\{}()[\]^$+*?.-]/g, (char) => `\\${char}`)
+  private formatQueryAsPattern(query: string) {
+    return query.trim().replace(/[|\\{}()[\]^$+*?.-]/g, (char) => `\\${char}`)
   }
 }

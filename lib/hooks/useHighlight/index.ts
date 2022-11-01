@@ -2,6 +2,8 @@ import {
   Children,
   cloneElement,
   createElement,
+  isValidElement,
+  PropsWithChildren,
   ReactNode,
   useMemo,
 } from 'react'
@@ -14,11 +16,16 @@ export type HighlightFilterData = {
   occurrence: number
 }
 
+export type HighlightExcludeData = {
+  element: ReactNode
+}
+
 export type HighlightOptions = {
   element: ReactNode
   query: string | string[]
   renderMark?: (text: string) => ReactNode
   filter?: (data: HighlightFilterData) => boolean
+  exclude?: (data: HighlightExcludeData) => boolean
   nestedElements?: boolean
 }
 
@@ -27,15 +34,22 @@ function highlight({
   query,
   renderMark = (text) => createElement('mark', undefined, text),
   filter = () => true,
+  exclude = () => false,
   nestedElements = false,
 }: HighlightOptions): ReactNode {
-  const queries = Array.isArray(query) ? query : [query]
-  const queryRegex = new QueryRegExp(queries, 'ig')
+  const queryRegex = new QueryRegExp(query, {
+    global: true,
+    ignoreCase: true,
+  })
 
   if (!queryRegex.isValid) return element
 
-  const children = Children.map(element, (child) => {
+  const markedElement = Children.map(element, (child) => {
     if (!child) return null
+
+    if (exclude({ element: child })) {
+      return child
+    }
 
     if (typeof child === 'string') {
       const texts = queryRegex
@@ -48,7 +62,7 @@ function highlight({
                 fullText: child,
                 occurrence,
                 text,
-                regex: queryRegex,
+                regex: queryRegex.regex,
               }),
             }
           }
@@ -62,9 +76,8 @@ function highlight({
 
     if (
       nestedElements &&
-      typeof child === 'object' &&
-      'props' in child &&
-      child.props.children
+      isValidElement<PropsWithChildren>(child) &&
+      !!child.props.children
     ) {
       const { children, ...props } = child?.props
 
@@ -76,6 +89,8 @@ function highlight({
           query,
           renderMark,
           nestedElements,
+          filter,
+          exclude,
         })
       )
     }
@@ -83,7 +98,7 @@ function highlight({
     return child
   })!
 
-  return children
+  return markedElement
 }
 
 export function useHighlight({
@@ -92,6 +107,7 @@ export function useHighlight({
   renderMark,
   nestedElements,
   filter,
+  exclude,
 }: HighlightOptions) {
   return useMemo(
     () =>
@@ -101,7 +117,8 @@ export function useHighlight({
         renderMark,
         nestedElements,
         filter,
+        exclude,
       }),
-    [element, query, renderMark, nestedElements]
+    [element, query, renderMark, nestedElements, filter, exclude]
   )
 }
