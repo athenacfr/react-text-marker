@@ -18,6 +18,7 @@ export type HighlightFilterData = {
 
 export type HighlightExcludeData = {
   element: ReactNode
+  depth: number
 }
 
 export type HighlightOptions = {
@@ -27,6 +28,7 @@ export type HighlightOptions = {
   filter?: (data: HighlightFilterData) => boolean
   exclude?: (data: HighlightExcludeData) => boolean
   nestedElements?: boolean
+  depth?: number
 }
 
 function highlight({
@@ -36,6 +38,7 @@ function highlight({
   filter = () => true,
   exclude = () => false,
   nestedElements = false,
+  depth = 0,
 }: HighlightOptions): ReactNode {
   const queryRegex = new QueryRegExp(query, {
     global: true,
@@ -45,9 +48,7 @@ function highlight({
   if (!queryRegex.isValid) return element
 
   const markedElement = Children.map(element, (child) => {
-    if (!child) return null
-
-    if (exclude({ element: child })) {
+    if (!child || exclude({ element: child, depth })) {
       return child
     }
 
@@ -91,6 +92,7 @@ function highlight({
           nestedElements,
           filter,
           exclude,
+          depth: depth + 1,
         })
       )
     }
